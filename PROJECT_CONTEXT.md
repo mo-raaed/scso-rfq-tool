@@ -1,25 +1,25 @@
-# Project Context & Technical Architecture Manual: SCSO RFQ Tool
+# Technical Architecture & Context Manual: RFQ Automation Tool
 
 > **Target Audience**: AI Language Models, Technical Architects, and Developers.
-> **Purpose**: This document provides a comprehensive, end-to-end technical reference for the SCSO RFQ Tool codebase. It explains the software domain, design decisions, data models, file parsing algorithms, document generation engine, GUI wizard workflow, build procedures, and runtime workarounds.
+> **Purpose**: This document provides a comprehensive, end-to-end technical reference for the RFQ Automation Tool codebase. It explains the software domain, design decisions, data models, file parsing algorithms, document generation engine, GUI wizard workflow, build procedures, and runtime workarounds.
 
 ---
 
 ## 1. Executive Summary & Business Domain
 
-The **SCSO RFQ Automation Tool** is a specialized desktop application built for SCSO (procurement & engineering operations). 
+The **RFQ Automation Tool** is a specialized desktop application built for industrial engineering and procurement operations.
 
 ### The Problem
-Clients and end-users (e.g., Petronas, Majnoon oil field operators, Alsharq) submit Requests for Quotations (RFQs) and technical inquiries in highly heterogeneous formats:
+Clients and end-users (e.g., oil & gas field operators, EPC contractors, industrial plant managers) submit Requests for Quotations (RFQs) and technical inquiries in highly heterogeneous formats:
 - Email bodies (`.msg`) containing informal product specifications.
 - Formal PDF documents (both native vector PDFs and scanned image-based PDFs).
 - Excel sheets (`.xlsx`, `.xls`) with variable column headers in English and Arabic.
 - Word documents (`.docx`).
 
-Manually extracting inquiry line items, technical attributes, closing dates, tender numbers, and customer details, then re-keying them into SCSO's official Word template (`SCSO RFQ.docx`) and converting to PDF is labor-intensive and prone to human error.
+Manually extracting inquiry line items, technical attributes, closing dates, tender numbers, and customer details, then re-keying them into the master Word template (`resources/SCSO RFQ.docx`) and converting to PDF is labor-intensive and prone to human error.
 
 ### The Solution
-The SCSO RFQ Tool automates this pipeline:
+The RFQ Automation Tool automates this pipeline:
 1. **Ingests & Extracts**: Parses incoming files, detects format-specific structures, runs OCR on scanned documents, and translates Arabic inquiries to English with human-in-the-loop validation.
 2. **Standardizes**: Normalizes line items, quantities, manufacturers, model numbers, part numbers, closing dates, and tender metadata into a unified Python data model (`RFQData`).
 3. **Interacts**: Presents an interactive 3-step GUI wizard for human review, editing, toggle control over legal/technical clauses, custom note addition, and date selection.
@@ -59,7 +59,7 @@ Program/
     │   ├── __init__.py
     │   └── app.py           # Tkinter Desktop GUI (3-screen wizard & dialogs)
     └── resources/
-        └── SCSO RFQ.docx    # Official master Word template
+        └── SCSO RFQ.docx    # Sample master Word template
 ```
 
 ---
@@ -83,7 +83,7 @@ class RFQItem:
 @dataclass
 class RFQData:
     # Header fields
-    ref_number: str = ""                # Internal SCSO reference number (e.g. "4783")
+    ref_number: str = ""                # Internal reference number (e.g. "1001")
     tender_subject: str = ""            # Short tender description / title
     closing_date: str = ""              # Date string (e.g. "2026.07.30")
 
@@ -133,7 +133,7 @@ class RFQData:
     # Output options
     generate_split_rfqs: bool = False
     output_folder: str = ""
-    output_filename: str = ""           # e.g., "Request #4783 Coriolis flowmeter"
+    output_filename: str = ""           # e.g., "Request #1001 Flow Meter Inquiry"
 
     # Source tracking & raw text
     source_file_path: str = ""
@@ -165,7 +165,7 @@ graph TD
     CheckExt -->|.docx| DOCXExtractor
 
     PDFExtractor --> PDFTextCheck{Text > 50 chars?}
-    PDFTextCheck -->|Yes| PDFParse[Petronas Regex / Generic Regex / Tags]
+    PDFTextCheck -->|Yes| PDFParse[RFx Material Specs / Generic Regex / Tag Matching]
     PDFTextCheck -->|No / Garbled| PyMuPDF_OCR[PyMuPDF + Pytesseract OCR] --> PDFParse
 
     PDFParse --> ArabicCheck{Contains Arabic?}
@@ -184,19 +184,19 @@ graph TD
 - **Text Extraction**: Uses `pdfplumber`. If text length is < 50 characters or text character ratio is garbled (`_is_text_garbage()`), triggers OCR.
 - **OCR Pipeline**: Renders PDF pages to 300 DPI PNG pixmaps using `PyMuPDF` (`fitz`), then invokes `pytesseract` image-to-string (`eng+ara` language models).
 - **Arabic Translation**: Scans for Unicode Arabic range `[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+`. If present (> 20 chars), splits text into 4500-char chunks and translates using `deep_translator.GoogleTranslator`. Prefixes raw extracted text with translation notice so user can review it in GUI.
-- **Petronas Structured Parser**: Scans for Petronas RFx material format:
+- **Structured RFx Parser**: Scans for standardized RFx material specification formats:
   - Header: `RFQ NUMBER : <number>`
   - Line items regex: `^\s*(\d+)\s+(\d{8})\s+([\d,.]+)\s+([A-Z]{2})\s+(.+)$`
   - Attributes parsing: `MANUFACTURER NAME`, `MODEL NUMBER`, `MANUFACTURER PART NUMBER`.
 - **Generic Parsers**:
   - Numbered list regex: `(\d+)\.\s+(.+?)(?:Qty|QTY|Quantity|qty)\s*[:\-]?\s*(\d+)`
-  - Tag number matcher: Searches for tag numbers like `CP2-506FT-001` or `CP2-506FT -001` and creates datasheet line items.
+  - Tag number matcher: Searches for tag numbers like `FT-506-001` or `TAG-101` and creates datasheet line items.
 - **Metadata Parsers**: Extracts closing dates and tender subjects using regex patterns.
 
 ### 5.2 `msg_extractor.py` (MSGExtractor)
 - **Email Body Parsing**: Uses `extract-msg` library to parse `.msg` files.
 - **Metadata Extraction**: Scans email body for patterns like `NO later than <date>`, `before <date>`, `Closing Date: <date>`, `Tender Title: <subject>`, `Tender No.: <no>`, `client <name>`.
-- **Alsharq-Style Inquiries**: Parses direct body requests where product descriptions appear before `Qty: N`.
+- **Direct Inquiry Emails**: Parses direct body requests where product descriptions appear before `Qty: N`.
 - **Attachment Unpacking**: Extracts attachment files (`.pdf`, `.xlsx`, `.docx`) to temporary directory (`tempfile.mkdtemp()`), recursively invokes `PDFExtractor` or `XLSXExtractor`, merges items and metadata into `RFQData`, and cleans up temp folder in `finally:` block.
 
 ### 5.3 `xlsx_extractor.py` (XLSXExtractor)
@@ -219,7 +219,7 @@ graph TD
 
 ```mermaid
 graph TD
-    RFQData[RFQData Instance] --> CopyTemplate[Copy SCSO RFQ.docx to Output Path]
+    RFQData[RFQData Instance] --> CopyTemplate[Copy Master RFQ Template to Output Path]
     CopyTemplate --> HeaderPopulate[Populate Header Fields Ref#, Subject, Dates, End-User]
     HeaderPopulate --> SectionProc[Process Optional Sections COO, Inspection, General Note, Country of Origin]
     SectionProc --> MultiLineReplace[Replace Paragraph Text & Strip XML Shading/Highlights]
@@ -318,7 +318,7 @@ if hasattr(sys, '_MEIPASS'):
 
 ## 9. Key Dependencies & Libraries
 
-| Dependency | Version Requirement | Purpose in SCSO RFQ Tool |
+| Dependency | Version Requirement | Purpose in RFQ Automation Tool |
 | :--- | :--- | :--- |
 | `python-docx` | `>= 0.8.11` | Template parsing, table population, XML paragraph editing |
 | `pdfplumber` | `>= 0.10.0` | High-accuracy text extraction from vector PDFs |
@@ -347,4 +347,4 @@ if hasattr(sys, '_MEIPASS'):
 
 ---
 
-*Document Version: 1.0.0 — SCSO RFQ Automation Tool Engineering Specification.*
+*Document Version: 1.0.0 — RFQ Automation Tool Technical Specification.*

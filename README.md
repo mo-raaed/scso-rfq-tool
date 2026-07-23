@@ -1,4 +1,4 @@
-# SCSO RFQ Automation Tool 🚀
+# RFQ Automation Tool 🚀
 
 An intelligent, multi-format desktop automation software designed to streamline the extraction of customer inquiry data and the generation of standardized **Request for Quotation (RFQ)** documents in Word (`.docx`) and PDF formats.
 
@@ -6,12 +6,12 @@ An intelligent, multi-format desktop automation software designed to streamline 
 
 ## 📌 Overview
 
-The **SCSO RFQ Automation Tool** replaces manual document creation for engineering inquiries. It ingests supplier and client RFQs provided in various file formats (`.msg`, `.pdf`, `.xlsx`, `.docx`), parses line items, technical specifications, closing dates, and tender metadata, and populates a master template document.
+The **RFQ Automation Tool** replaces manual document creation for engineering inquiries. It ingests supplier and client RFQs provided in various file formats (`.msg`, `.pdf`, `.xlsx`, `.docx`), parses line items, technical specifications, closing dates, and tender metadata, and populates a master template document.
 
 ### Key Capabilities
 - **Multi-Format Extraction**: Parses Outlook emails (`.msg`), PDFs (native & scanned), Excel sheets (`.xlsx`/`.xls`), and Word documents (`.docx`).
-- **OCR & Translation**: Uses Optical Character Recognition (pytesseract) for scanned PDFs and includes automated Arabic-to-English translation with a interactive human-in-the-loop review interface.
-- **Structured Data Extraction**: Tailored parsers for specialized inquiry formats (such as Petronas RFx material specifications, Majnoon field data sheets, and direct email inquiries).
+- **OCR & Translation**: Uses Optical Character Recognition (pytesseract) for scanned PDFs and includes automated Arabic-to-English translation with an interactive human-in-the-loop review interface.
+- **Structured Data Extraction**: Tailored parsers for specialized inquiry formats (such as structured RFx material specifications, engineering field data sheets, and direct email inquiries).
 - **Template-Based Generation**: Fills master `.docx` templates and formats items sequentially or grouped by manufacturer.
 - **Manufacturer-Split RFQs**: Option to automatically split multi-brand inquiries into separate, vendor-specific RFQ documents.
 - **Word-to-PDF Conversion**: Native Microsoft Word COM automation for high-fidelity PDF rendering.
@@ -46,7 +46,7 @@ Program/
     ├── processors/
     │   └── rfq_builder.py   # Document generation engine & PDF converter
     └── resources/
-        └── SCSO RFQ.docx    # Master Word RFQ template
+        └── SCSO RFQ.docx    # Sample Word RFQ template
 ```
 
 ---
@@ -128,4 +128,5 @@ If you are feeding this codebase to another AI model for context, please refer t
 
 ## 📜 License
 
-Internal Proprietary Tool — Built for SCSO Engineering & Procurement Operations.
+Demonstration & Portfolio Showcase — Built for Engineering & Procurement Operations.
+
