@@ -1,0 +1,10 @@
+python-docx>=0.8.11
+pdfplumber>=0.10.0
+PyMuPDF>=1.23.0
+extract-msg>=0.45.0
+openpyxl>=3.1.0
+docx2pdf>=0.1.8
+deep-translator>=1.11.0
+Pillow>=10.0.0
+pytesseract>=0.3.10
+pyinstaller>=6.0.0
