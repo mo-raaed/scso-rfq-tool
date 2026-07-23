@@ -64,6 +64,12 @@ venv.bak/
 settings.json
 *.tmp
 
+# IDE / Agent Scratch Files & Workspace Plans
+SKILL.md
+SKILL*.md
+implementation_plan.md
+walkthrough.md
+
 # Operating System Files
 .DS_Store
 Thumbs.db

@@ -62,7 +62,7 @@ Program/
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-org/scso-rfq-tool.git
+   git clone https://github.com/mo-raaed/scso-rfq-tool.git
    cd scso-rfq-tool
    ```
 
